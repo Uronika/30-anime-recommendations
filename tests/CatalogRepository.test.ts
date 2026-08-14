@@ -16,6 +16,14 @@ describe('CatalogRepository static-first behaviour', () => {
     expect(response).toMatchObject({ state: 'online-fallback', results: [onlineResult] })
   })
 
+  it('can explicitly use the official API without loading the static index', async () => {
+    const staticSearch = vi.spyOn(archiveRepository, 'search').mockResolvedValue([])
+    const onlineSearch = vi.spyOn(bangumiRepository, 'search').mockResolvedValue([onlineResult])
+    const response = await new CatalogRepository().search('关键词', { mode: 'api-only' })
+    expect(staticSearch).not.toHaveBeenCalled(); expect(onlineSearch).toHaveBeenCalledOnce()
+    expect(response).toMatchObject({ state: 'api-direct', results: [onlineResult] })
+  })
+
   it('falls back after a static-load failure and exposes both failures when neither source works', async () => {
     vi.spyOn(archiveRepository, 'search').mockRejectedValue(new Error('静态失败'))
     vi.spyOn(bangumiRepository, 'search').mockRejectedValue(new Error('在线失败'))

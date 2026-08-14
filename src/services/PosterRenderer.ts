@@ -8,6 +8,14 @@ const GUTTER = 50
 const HEADER_HEIGHT = 360
 const PAD = 26
 const COVER_HEIGHT = 300
+const TEXT_CARD_PADDING = 32
+const TEXT_CARD_TOP = 32
+const TEXT_CARD_BOTTOM = 40
+const TEXT_DAY_LINE_HEIGHT = 32
+const TEXT_DAY_TO_NAME_GAP = 20
+const TEXT_NAME_LINE_HEIGHT = 52
+const TEXT_NAME_TO_COMMENT_GAP = 28
+const TEXT_COMMENT_LINE_HEIGHT = 40
 
 function font(size: number, weight = 400) { return `${weight} ${size}px "Noto Sans SC", "Microsoft YaHei", sans-serif` }
 
@@ -53,11 +61,14 @@ export class PosterRenderer {
     const measure = document.createElement('canvas').getContext('2d')!
     const cards = CHALLENGE_DAYS.map((day) => {
       const entry = profile.entries[day.day - 1]
-      measure.font = font(37, 760)
-      const nameLines = wrap(measure, selectionName(entry.selection) || '待补完', CELL_WIDTH - PAD * 2)
-      measure.font = font(25, 400)
-      const commentLines = wrap(measure, entryText(entry), CELL_WIDTH - PAD * 2)
-      const height = PAD + 34 + (profile.showCovers ? COVER_HEIGHT + 24 : 10) + nameLines.length * 45 + 22 + commentLines.length * 33 + PAD
+      const horizontalPadding = profile.showCovers ? PAD : TEXT_CARD_PADDING
+      measure.font = font(profile.showCovers ? 37 : 40, 760)
+      const nameLines = wrap(measure, selectionName(entry.selection) || '待补完', CELL_WIDTH - horizontalPadding * 2)
+      measure.font = font(profile.showCovers ? 25 : 26, 400)
+      const commentLines = wrap(measure, entryText(entry), CELL_WIDTH - horizontalPadding * 2)
+      const height = profile.showCovers
+        ? PAD + 34 + COVER_HEIGHT + 24 + nameLines.length * 45 + 22 + commentLines.length * 33 + PAD
+        : TEXT_CARD_TOP + TEXT_DAY_LINE_HEIGHT + TEXT_DAY_TO_NAME_GAP + nameLines.length * TEXT_NAME_LINE_HEIGHT + TEXT_NAME_TO_COMMENT_GAP + commentLines.length * TEXT_COMMENT_LINE_HEIGHT + TEXT_CARD_BOTTOM
       return { day, entry, nameLines, commentLines, height }
     })
     const rowHeights = Array.from({ length: 6 }, (_, row) => Math.max(...cards.slice(row * COLUMNS, row * COLUMNS + COLUMNS).map((card) => card.height)))
@@ -81,9 +92,9 @@ export class PosterRenderer {
         const x = GUTTER + col * (CELL_WIDTH + GUTTER); const y = rowY
         const cellHeight = rowHeights[row]
         ctx.fillStyle = '#ffffff'; roundedRect(ctx, x, y, CELL_WIDTH, cellHeight, 16); ctx.fill()
-        ctx.fillStyle = '#4f7254'; ctx.font = font(26, 750); ctx.fillText(`DAY ${String(card.day.day).padStart(2, '0')}  ${card.day.title}`, x + PAD, y + PAD + 25)
-        let cursorY = y + PAD + 54
         if (profile.showCovers) {
+          ctx.fillStyle = '#4f7254'; ctx.font = font(26, 750); ctx.fillText(`DAY ${String(card.day.day).padStart(2, '0')}  ${card.day.title}`, x + PAD, y + PAD + 25)
+          let cursorY = y + PAD + 54
           const coverX = x + PAD; const coverWidth = CELL_WIDTH - PAD * 2
           const image = selectionArtwork(card.entry.selection) ? images.get(selectionArtwork(card.entry.selection)!.imageUrl) : undefined
           ctx.save(); roundedRect(ctx, coverX, cursorY, coverWidth, COVER_HEIGHT, 12); ctx.clip()
@@ -95,11 +106,24 @@ export class PosterRenderer {
             ctx.fillStyle = '#58715b'; ctx.font = font(34, 700); ctx.textAlign = 'center'; ctx.fillText(card.entry.selection ? selectionTypeLabel(card.entry.selection) : '待补完', coverX + coverWidth / 2, cursorY + COVER_HEIGHT / 2); ctx.textAlign = 'left'
           }
           ctx.restore(); cursorY += COVER_HEIGHT + 24
+          ctx.fillStyle = '#213025'; ctx.font = font(37, 760)
+          card.nameLines.forEach((line, index) => ctx.fillText(line, x + PAD, cursorY + index * 45)); cursorY += card.nameLines.length * 45 + 22
+          ctx.fillStyle = '#4c594e'; ctx.font = font(25, 400)
+          card.commentLines.forEach((line, index) => ctx.fillText(line, x + PAD, cursorY + index * 33))
+        } else {
+          const contentX = x + TEXT_CARD_PADDING
+          let cursorY = y + TEXT_CARD_TOP
+          ctx.textBaseline = 'top'
+          ctx.fillStyle = '#4f7254'; ctx.font = font(26, 750)
+          ctx.fillText(`DAY ${String(card.day.day).padStart(2, '0')}  ${card.day.title}`, contentX, cursorY)
+          cursorY += TEXT_DAY_LINE_HEIGHT + TEXT_DAY_TO_NAME_GAP
+          ctx.fillStyle = '#213025'; ctx.font = font(40, 760)
+          card.nameLines.forEach((line, index) => ctx.fillText(line, contentX, cursorY + index * TEXT_NAME_LINE_HEIGHT))
+          cursorY += card.nameLines.length * TEXT_NAME_LINE_HEIGHT + TEXT_NAME_TO_COMMENT_GAP
+          ctx.fillStyle = '#4c594e'; ctx.font = font(26, 400)
+          card.commentLines.forEach((line, index) => ctx.fillText(line, contentX, cursorY + index * TEXT_COMMENT_LINE_HEIGHT))
+          ctx.textBaseline = 'alphabetic'
         }
-        ctx.fillStyle = '#213025'; ctx.font = font(37, 760)
-        card.nameLines.forEach((line, index) => ctx.fillText(line, x + PAD, cursorY + index * 45)); cursorY += card.nameLines.length * 45 + 22
-        ctx.fillStyle = '#4c594e'; ctx.font = font(25, 400)
-        card.commentLines.forEach((line, index) => ctx.fillText(line, x + PAD, cursorY + index * 33))
       }
       rowY += rowHeights[row] + GUTTER
     }

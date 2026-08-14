@@ -17,6 +17,7 @@ export function SearchPicker({ onChoose, onManual }: Props) {
   const [choosing, setChoosing] = useState<number>()
   const [progress, setProgress] = useState<IndexProgress>()
   const [sourceNote, setSourceNote] = useState('')
+  const [directApi, setDirectApi] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -24,10 +25,15 @@ export function SearchPicker({ onChoose, onManual }: Props) {
       if (!query.trim()) { setResults([]); setProgress(undefined); setError(''); setSourceNote(''); return }
       setLoading(true); setError(''); setVisible(20); setProgress(undefined); setSourceNote('')
       try {
-        const response = await catalogRepository.search(query, (next) => { if (!cancelled) setProgress(next) })
+        const response = await catalogRepository.search(query, {
+          mode: directApi ? 'api-only' : 'archive-first',
+          onProgress: (next) => { if (!cancelled) setProgress(next) },
+        })
         if (cancelled) return
         setResults(response.results)
-        if (response.state === 'online-fallback') {
+        if (response.state === 'api-direct') {
+          setSourceNote('已直接使用 Bangumi 官方 API；本次搜索未加载离线资料库。')
+        } else if (response.state === 'online-fallback') {
           setSourceNote(response.archiveError ? '离线资料库暂时不可用，正在显示 Bangumi 官方 API 的在线补充。' : 'Archive 快照没有匹配结果，正在显示 Bangumi 官方 API 的在线补充。')
         }
       } catch (cause) {
@@ -35,7 +41,16 @@ export function SearchPicker({ onChoose, onManual }: Props) {
       } finally { if (!cancelled) setLoading(false) }
     }, 350)
     return () => { cancelled = true; window.clearTimeout(timer) }
-  }, [query])
+  }, [query, directApi])
+
+  function toggleDirectApi(enabled: boolean) {
+    setDirectApi(enabled)
+    setResults([])
+    setVisible(20)
+    setError('')
+    setProgress(undefined)
+    setSourceNote('')
+  }
 
   async function choose(result: CatalogueSearchResult) {
     setChoosing(result.id)
@@ -44,9 +59,13 @@ export function SearchPicker({ onChoose, onManual }: Props) {
     finally { setChoosing(undefined) }
   }
 
-  return <section className="picker" aria-label="搜索 Bangumi Archive 资料库">
-    <label htmlFor="catalog-search">在 Bangumi 档案中搜索动画、作品或角色</label>
+  return <section className="picker" aria-label="目录搜索">
+    <label htmlFor="catalog-search">搜索动画、作品或角色</label>
     <input id="catalog-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="例如：葬送的芙莉莲、火影忍者、Frieren" autoComplete="off" />
+    <label className="api-search-toggle">
+      <input type="checkbox" checked={directApi} onChange={(event) => toggleDirectApi(event.target.checked)} />
+      <span><strong>直接使用 Bangumi 官方 API</strong><small>跳过离线资料库；适合已能直连 Bangumi 或不想等待资料库准备时使用。</small></span>
+    </label>
     {progress && loading && <p className="status" role="status">正在准备离线资料库：{progress.completed} / {progress.total} 个搜索分片{progress.cached ? '（读取本机缓存）' : ''}</p>}
     {loading && !progress && <p className="status" role="status">正在准备离线资料库…</p>}
     {sourceNote && <p className="status">{sourceNote}</p>}
@@ -59,6 +78,6 @@ export function SearchPicker({ onChoose, onManual }: Props) {
     {results.length > visible && <button type="button" className="secondary load-more" onClick={() => setVisible((count) => count + 20)}>加载更多（剩余 {results.length - visible} 条）</button>}
     {query && !loading && !results.length && !error && <p className="status">没有匹配结果，也可以手工填写。</p>}
     <button type="button" className="text-button" onClick={onManual}>没有找到？手工填写</button>
-    <footer className="source-footer">资料来源：Bangumi Archive 固定快照；仅在快照零命中或加载失败时连接 <code>api.bgm.tv</code> 官方 API。静态资料库不会写入备份文件。</footer>
+    <footer className="source-footer">资料来源：{directApi ? <>本次直接连接 <code>api.bgm.tv</code> 官方 API，不加载离线资料库。</> : <>Bangumi Archive 固定快照；仅在快照零命中或加载失败时连接 <code>api.bgm.tv</code> 官方 API。静态资料库不会写入备份文件。</>}</footer>
   </section>
 }

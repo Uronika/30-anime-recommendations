@@ -2,7 +2,12 @@ import type { CatalogSelection } from '../domain/types'
 import { archiveRepository, type CatalogueSearchResult, type IndexProgress } from './ArchiveRepository'
 import { bangumiRepository } from './BangumiRepository'
 
-export type CatalogueSearchState = 'archive' | 'online-fallback'
+export type CatalogueSearchState = 'archive' | 'online-fallback' | 'api-direct'
+
+export interface CatalogueSearchOptions {
+  mode?: 'archive-first' | 'api-only'
+  onProgress?: (progress: IndexProgress) => void
+}
 
 export interface CatalogueSearchResponse {
   results: CatalogueSearchResult[]
@@ -12,7 +17,8 @@ export interface CatalogueSearchResponse {
 
 /** Keeps the static-first / official-online-fallback rule outside UI components. */
 export class CatalogRepository {
-  async search(query: string, onProgress?: (progress: IndexProgress) => void): Promise<CatalogueSearchResponse> {
+  async search(query: string, { mode = 'archive-first', onProgress }: CatalogueSearchOptions = {}): Promise<CatalogueSearchResponse> {
+    if (mode === 'api-only') return { results: await bangumiRepository.search(query), state: 'api-direct' }
     try {
       const staticResults = await archiveRepository.search(query, onProgress)
       if (staticResults.length) return { results: staticResults, state: 'archive' }
