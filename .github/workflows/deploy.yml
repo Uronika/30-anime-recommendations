@@ -1,9 +1,9 @@
 name: Deploy
 
-"on":
+on:
   push:
     branches: [main]
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -31,7 +31,8 @@ jobs:
   deploy-pages:
     needs: test-build
     runs-on: ubuntu-latest
-    environment: { name: github-pages, url: ${{ steps.deployment.outputs.page_url }} }
+    environment:
+      name: github-pages
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
