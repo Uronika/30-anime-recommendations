@@ -41,9 +41,14 @@ export class BangumiRepository {
     const cacheKey = `${type}:${normalized}`
     const prior = this.cache.get(cacheKey)
     if (prior) return prior
-    const response = await fetch(`${API_BASE}/v0/search/${type}?limit=12`, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ keyword: normalized }),
-    })
+    let response: Response
+    try {
+      response = await fetch(`${API_BASE}/v0/search/${type}?limit=12`, {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ keyword: normalized }), signal: AbortSignal.timeout(12_000),
+      })
+    } catch {
+      throw new Error('Bangumi 代理连接超时，请重试或使用手工填写。')
+    }
     if (!response.ok) throw new Error('暂时无法连接 Bangumi，请稍后重试或使用手工填写。')
     const body = type === 'subjects' ? await response.json() as SearchResponse : await response.json() as CharacterResponse
     const results: SearchResult[] = body.data.map((item: SubjectItem | CharacterItem) => ({
