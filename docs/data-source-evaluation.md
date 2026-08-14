@@ -1,8 +1,8 @@
 # 国内直连替代数据源评测（研究分支）
 
-**状态：研究中，不接入产品。** 本文、`research/` 与 `scripts/` 只存在于
-`research/domestic-anime-data` 分支。它们不会更改 `main`、`gh-pages`、线上
-Pages、既有 Release，亦不会读取或迁移任何用户的 IndexedDB 数据。
+**状态：替代来源仍在研究；Bangumi Archive 静态快照已作为产品主源实施。**
+本文保留对“国内直连替代来源”的评估边界；它不承诺任何第三方 API 的大陆可达性。
+当前产品实现与固定快照验收见 [Archive 静态主源说明](./archive-static-source.md)，不会读取或上传用户的 IndexedDB 数据。
 
 ## 结论（截至 2026-08-14）
 
@@ -12,8 +12,8 @@ Pages、既有 Release，亦不会读取或迁移任何用户的 IndexedDB 数�
 
 当前的实施建议是：
 
-1. 保留 Bangumi Archive 作为离线基准数据，而不是把它当成浏览器实时依赖。它由
-   Bangumi 官方按周导出条目、角色与条目—角色关联，适合非实时场景。
+1. Bangumi Archive 已固定为浏览器静态主源，而不是浏览器实时依赖。它由 Bangumi
+   官方按周导出条目、角色与条目—角色关联，适合非实时场景；当前版本不会把原始 ZIP 部署到 Pages。
 2. 优先完成 AniList 的 100 条基准测试和三网验证；它是唯一同时具备官方公开 API、
    动画、角色、关联与图片能力的替代候选。
 3. 若 AniList 通过可达性但中文命中不足，再单独评估以 `bangumi-data`（作品标题/季番
@@ -38,15 +38,14 @@ API 与归档数据，同时限制爬虫式采集；本研究仅在寻找浏览�
 
 ## 固定基准和可重复运行方式
 
-`research/provider-test-cases.json` 固定为 100 条：65 条动画、35 条角色，覆盖中文名、
-日文原名、别名、长尾动画、同名作品、热门角色和 NSFW 条目。每条测试同时保存查询词与
-可接受名称，避免仅用“有 HTTP 返回”误判为检索可用。
+`research/provider-test-cases.json` 固定为 160 条：原有 65 条动画、35 条角色，外加书籍/漫画、
+游戏、音乐各 20 条；覆盖中文名、日文原名、别名、长尾、同名、热门角色和 NSFW 条目。每条测试同时保存查询词与可接受名称，避免仅用“有 HTTP 返回”误判为检索可用。
 
 ```powershell
 # 单一网络 HTTP 探测；结果可选地写到被 gitignore 的 artifacts/。
 npm run research:probe -- --output artifacts/source-probe.json
 
-# 小样本检索基准（默认 10 条；100 条请在允许时运行，脚本会节流）。
+# 小样本检索基准（默认 10 条；160 条请在允许时运行，脚本会节流）。
 npm run research:benchmark -- --provider anilist --limit 10 --output artifacts/anilist-sample.json
 npm run research:benchmark -- --provider jikan --limit 10
 npm run research:benchmark -- --provider moegirl --limit 10
@@ -128,7 +127,7 @@ Release 元数据端点后本次仍为网络错误。每一项的 `mainlandStatu
 1. 100 条测试集的结果、失败项和命中规则均可复现；
 2. 至少两家独立中国大陆运营商通过浏览器搜索和 Canvas 图片测试；
 3. 动画、角色、关联、封面、中文字段、限流和许可都已记录；
-4. 若使用组合来源，界面与导出的海报可清楚标注每条数据/图片的来源与署名；
+4. 若使用组合来源，界面可清楚标注每条数据/图片的来源与署名；海报不写入来源信息；
 5. 不引入用户数据上传、账号、代理转发或秘密 Token 到浏览器端。
 
 在上述条件成立前，最终结论是：**Bangumi 不可被替换；AniList 仅为首选验证候选；

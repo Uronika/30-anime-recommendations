@@ -1,106 +1,73 @@
 # 30部动漫推荐
 
-把动画记忆整理成一张可以长期保存的个人档案。这个网站提供 30 个固定主题，让你选择动画或角色、写下不超过 100 字的理由，最后导出为一张高清 5 × 6 PNG 海报。
+把动画记忆整理成一张可以长期保存的个人档案：30 个固定题目、每题最多 100 字短评，最后导出高清 5 × 6 PNG。
 
-**正式访问地址：<https://uronika.github.io/30-anime-recommendations/>**
+**正式网址：[uronika.github.io/30-anime-recommendations](https://uronika.github.io/30-anime-recommendations/)**
 
-> 当前稳定代码位于 [`github-pages-restore`](https://github.com/Uronika/30-anime-recommendations/tree/github-pages-restore) 分支。`main` 保留 EdgeOne 尝试的历史，尚未作为此稳定版本的发布来源。
+## 现在能做什么
 
-## 能做什么
-
-- 按自己的节奏完成 30 个动画主题，不需要连续打卡，也不需要登录。
-- Day 6–9 搜索和选择角色；其余日期选择动画。
-- Day 28 记录一首动画音乐：曲名必填，演唱或作曲信息可选，并关联一部动画作为封面。
-- 每一天可写 0–100 字短评；同一部动画或角色可用于多个题目。
-- 使用 Bangumi 检索动画与角色。搜索失败、没有结果或不想搜索时，可手工填写并上传本地图片。
-- 自动将昵称、标题、选择、短评和压缩后的手工图片保存在当前浏览器。
-- 将全部内容导出为 JSON 备份，之后可在同一或另一台设备导入恢复。
-- 下载一张约 3000px 宽的 5 × 6 PNG；未填写的格子会显示“待补完”。
+- 任意填写 30 个 Day；包括 Day 6–9 与 Day 28 在内的每一题，都可从同一个 Bangumi 档案中选择作品或角色。
+- 静态资料库覆盖书籍/漫画、动画、游戏、音乐和角色，默认也显示 NSFW 记录。原有 Day 28 的“曲目 + 关联动画”旧备份仍可导入、显示、导出。
+- 搜索支持中文名、日文原名、白名单别名、中文全拼与拼音首字母；第一次搜索会显示离线资料库的真实准备进度。
+- 静态快照有结果时不请求网络 API；零结果或静态加载失败时，才直接请求 Bangumi 官方 `api.bgm.tv` 作为在线补充。在线补充也失败时可继续手工填写。
+- 可为 Archive 或在线条目上传个人图片；图片先在浏览器压缩，只保存到当前浏览器和 JSON 备份。
+- 档案级“显示封面图片”默认关闭。关闭时编辑页和 PNG 海报均不会预留空白图片区；开启时优先显示个人图片，缺图时显示类型占位卡。
+- 所有档案、短评、开关与个人图片保存在 IndexedDB；可完整导入/导出 JSON。资料库缓存不进入备份，清除本机档案时会一并移除。
 
 ## 使用方法
 
-1. 打开[正式网站](https://uronika.github.io/30-anime-recommendations/)，填写昵称和副标题（可留空）。
-2. 在顶部选择任意 Day。输入关键词后，从 Bangumi 搜索结果选择动画或角色；也可以点“手工填写”。
-3. 填写可选短评。每次修改都会自动保存到浏览器本地。
-4. 需要迁移或留档时，点击“导出备份”；恢复时点击“导入备份”。
-5. 点击“下载 5×6 PNG”生成可分享的个人动画档案。
+1. 打开[正式网站](https://uronika.github.io/30-anime-recommendations/)，按需填写昵称、副标题与封面显示开关。
+2. 在顶部选择任意 Day，输入作品、角色、别名或拼音；从结果中选择，或点击“手工填写”。
+3. 填写 0–100 字短评。页面会自动保存到当前浏览器。
+4. 需要迁移时点击“导出备份”；新设备上用“导入备份”恢复。
+5. 点击“下载 5×6 PNG”下载约 3000px 宽的海报。未填写卡片会显示“待补完”。
 
-## 数据与隐私
+## Bangumi Archive 静态主源
 
-- 不提供账户、云同步、公开主页或用户数据库。
-- 填写内容保存在浏览器的 IndexedDB（数据库名为 `anime-30-day-archive`）中；清除该网站的浏览器数据会一并清除内容。
-- 手工上传的图片会先在浏览器中压缩，再保存在本地数据和 JSON 备份里。
-- Bangumi 搜索仅用于查找动画、角色和封面，不会上传你的昵称、短评、备份或图片。
+当前版本固定使用 `dump-2026-08-11.210343Z.zip`（432,714,422 bytes，SHA-256：`d1f6865e64c7b9a848621bb7d4bd55e31cbef3395935df37e49bdc597ce609c8`）。GitHub Actions 在每次 Pages 构建中下载或恢复缓存、验证大小和 SHA-256，再生成只含搜索与详情所需字段的分片；任一校验失败都会停止发布，线上上一版保持不变。
 
-因此，在更换浏览器、清理站点数据或使用无痕模式前，请先导出 JSON 备份。
+原始 ZIP 不会公开部署。发布物只含搜索分片、详情分片与快照清单，不含原始 `infobox` 或用户数据。完整字段、缓存、回退与验收规则见 [Archive 静态主源说明](./docs/archive-static-source.md)。
 
-## Bangumi 连通性与手工回退
+Pages 是纯静态网站，不再默认使用 Cloudflare Worker 或其他代理。若当前网络无法直连 `api.bgm.tv`，不影响已有 Archive 静态资料库与手工填写；仅“在线补充”不可用。
 
-GitHub Pages 是纯静态网站。不同网络环境下，`api.bgm.tv` 或图片域名可能无法直连；这不会影响已有的本地记录和手工填写。
+## 隐私与数据来源
 
-生产环境可选配一个 Cloudflare Worker 作为受限的 Bangumi 代理。Worker 只转发动画/角色搜索和封面图片请求，且不保存用户填写内容。设置代理后，GitHub Actions 会在构建时将其地址写入前端，使搜索和海报图片请求均经过该代理。
+- 没有登录、账号、云同步、公开个人主页或用户数据库。
+- 个人档案存于浏览器 IndexedDB（`anime-30-day-archive`）。清除浏览器站点数据会清除档案，重要内容请先导出 JSON。
+- 浏览器首次静态搜索会缓存资料库索引；这是公开的 Archive 派生数据，不含昵称、短评或上传图片，也不会导出到 JSON。
+- Bangumi Archive 与官方 API 的条目、角色数据来自 [Bangumi](https://bgm.tv/)；本项目不代表 Bangumi 官方，使用时应遵循其相关规则。
 
-没有可用代理时，网站仍可使用：搜索提示失败后，选择“手工填写”并上传图片即可继续完成挑战和导出海报。
+## 本地开发、构建与验收
 
-## 本地开发
+需要 Node.js 24 和 npm：
 
-环境要求：Node.js 24（与 GitHub Actions 保持一致）和 npm。
-
-```bash
+```powershell
 npm ci
-Copy-Item .env.example .env.local
-npm run dev
-```
-
-如果已经部署 Worker，在 `.env.local` 中填写：
-
-```dotenv
-VITE_BANGUMI_PROXY_URL=https://<你的-worker>.<你的账户>.workers.dev
-```
-
-不填写时，开发环境会直接请求 `https://api.bgm.tv`。请勿把 `.env.local` 或任何访问令牌提交到仓库。
-
-## 测试与构建
-
-```bash
+npm run archive:build
+npm run archive:benchmark -- --assert --output artifacts/archive-benchmark.json
 npm test
 npm run build
 npm run test:e2e
 ```
 
-单元测试覆盖题目分类、名称回退、短评限制、选择序列化、图片压缩与备份兼容性；端到端测试覆盖填写、自动保存、手工图片、导入导出和 PNG 海报生成。
-
-## 国内数据源探索
-
-`research/domestic-anime-data` 分支保留一套不影响线上站点的数据源评测工具：固定的 100 条测试集、统一来源适配契约、HTTP 探测、节流检索基准与机器可读评分表。结论和三网验收规则见 [数据源评测报告](./docs/data-source-evaluation.md)。
-
-该研究分支不替换当前 Bangumi 运行时数据源，也不改动 `main`、`gh-pages`、正式网址或任何浏览器本地数据。
+`archive:build` 会下载约 433 MB 的固定 Archive 输入（本地已有缓存时会先校验再复用），并生成未提交的 `public/archive-data/` 分片。`archive:benchmark` 对 160 条固定用例评分；中文名、日文原名要求至少 95%，别名、长尾、同名、NSFW、热门角色要求至少 80%。当前快照的可复查汇总见 [`docs/archive-benchmark-summary.json`](./docs/archive-benchmark-summary.json)。
 
 ## GitHub Pages 发布
 
-正式地址由 GitHub Pages 提供：<https://uronika.github.io/30-anime-recommendations/>。
+仓库在 **Settings → Pages** 中将 Source 设为 **GitHub Actions**。推送到 `main` 后，工作流会：
 
-稳定发布应从 `github-pages-restore` 的内容进入 `main` 后触发。仓库需在 **Settings → Pages** 中将 Source 设为 **GitHub Actions**。推送到 `main` 后，`.github/workflows/deploy.yml` 会依次安装依赖、运行单元测试、构建 `dist` 并发布 Pages。
+1. 安装依赖并恢复固定 Archive 的 Actions 缓存；
+2. 校验 ZIP 大小与 SHA-256，生成静态分片；
+3. 运行单元测试与静态搜索基准；
+4. 构建 `dist` 并发布 GitHub Pages。
 
-如需部署可选的 Bangumi Worker，还需在仓库的 **Settings → Secrets and variables → Actions** 配置：
+不需要配置 Cloudflare Token、Worker URL 或任何代理 Secrets；`worker/` 仅保留为未来实验源码，默认工作流不会发布或调用它。
 
-| 类型 | 名称 | 用途 |
-| --- | --- | --- |
-| Variable | `CLOUDFLARE_ENABLED` | 设为 `true` 才会发布 Worker。 |
-| Variable | `BANGUMI_PROXY_URL` | 已部署 Worker 的 `workers.dev` 地址，构建时提供给前端。 |
-| Secret | `CLOUDFLARE_API_TOKEN` | 允许发布 Worker 的 Cloudflare API Token。 |
-| Secret | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare 账户 ID。 |
+## 版本记录与研究历史
 
-上述密钥绝不可提交到仓库。若不配置 Worker，Pages 仍可发布和使用手工填写功能。
-
-## 版本记录
-
-完整变更见 [CHANGELOG.md](./CHANGELOG.md)，发布包见 [GitHub Releases](https://github.com/Uronika/30-anime-recommendations/releases)。
+- 完整变更见 [CHANGELOG.md](./CHANGELOG.md)，发布包见 [GitHub Releases](https://github.com/Uronika/30-anime-recommendations/releases)。
+- `research/domestic-anime-data` 分支保留此前对国内直连替代数据源的评估。当前产品采用 Bangumi Archive 静态主源，并未宣称 `api.bgm.tv` 在中国大陆可直连。
 
 ## 技术栈
 
-React、TypeScript、Vite、IndexedDB（`idb`）、Canvas、Vitest、Playwright、GitHub Pages，以及可选 Cloudflare Worker。
-
-## 许可与数据来源
-
-Bangumi 条目、角色和图片数据由 [Bangumi](https://bgm.tv/) 提供。使用其数据时应遵循 Bangumi 的相关规则；本项目不代表 Bangumi 官方。
+React、TypeScript、Vite、IndexedDB（`idb`）、Canvas、Vitest、Playwright、GitHub Actions、GitHub Pages 与 Bangumi Archive。

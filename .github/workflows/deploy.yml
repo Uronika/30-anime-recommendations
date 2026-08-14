@@ -22,10 +22,17 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 24, cache: npm }
       - run: npm ci
+      - name: Restore fixed Bangumi Archive input
+        uses: actions/cache@v4
+        with:
+          path: .cache/bangumi-archive/dump-2026-08-11.210343Z.zip
+          key: bangumi-archive-dump-2026-08-11.210343Z-d1f6865e64c7b9a8
       - run: npm test
+      - name: Verify snapshot and generate static catalogue
+        run: npm run archive:build
+      - name: Verify static search benchmark
+        run: npm run archive:benchmark -- --assert --output artifacts/archive-benchmark.json
       - run: npm run build
-        env:
-          VITE_BANGUMI_PROXY_URL: ${{ vars.BANGUMI_PROXY_URL }}
       - uses: actions/upload-pages-artifact@v3
         with: { path: ./dist }
   deploy-pages:
@@ -36,16 +43,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-  deploy-worker:
-    if: ${{ vars.CLOUDFLARE_ENABLED == 'true' }}
-    needs: test-build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 24, cache: npm }
-      - run: npm ci
-      - run: npm run worker:deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

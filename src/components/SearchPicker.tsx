@@ -1,41 +1,64 @@
 import { useEffect, useState } from 'react'
-import { bangumiRepository, type SearchResult } from '../services/BangumiRepository'
-import type { BangumiCharacterSelection, BangumiSubjectSelection } from '../domain/types'
+import { selectionTypeLabel, type CatalogSelection } from '../domain/types'
+import { catalogRepository } from '../services/CatalogRepository'
+import type { CatalogueSearchResult, IndexProgress } from '../services/ArchiveRepository'
 
 interface Props {
-  kind: 'subject' | 'character'
-  onChoose: (selection: BangumiSubjectSelection | BangumiCharacterSelection) => void
+  onChoose: (selection: CatalogSelection) => void
   onManual: () => void
 }
 
-export function SearchPicker({ kind, onChoose, onManual }: Props) {
+export function SearchPicker({ onChoose, onManual }: Props) {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<SearchResult[]>([])
+  const [results, setResults] = useState<CatalogueSearchResult[]>([])
+  const [visible, setVisible] = useState(20)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [choosing, setChoosing] = useState<number>()
+  const [progress, setProgress] = useState<IndexProgress>()
+  const [sourceNote, setSourceNote] = useState('')
 
   useEffect(() => {
+    let cancelled = false
     const timer = window.setTimeout(async () => {
-      if (!query.trim()) { setResults([]); return }
-      setLoading(true); setError('')
-      try { setResults(kind === 'subject' ? await bangumiRepository.searchSubjects(query) : await bangumiRepository.searchCharacters(query)) }
-      catch (cause) { setResults([]); setError(cause instanceof Error ? cause.message : '搜索失败。') }
-      finally { setLoading(false) }
+      if (!query.trim()) { setResults([]); setProgress(undefined); setError(''); setSourceNote(''); return }
+      setLoading(true); setError(''); setVisible(20); setProgress(undefined); setSourceNote('')
+      try {
+        const response = await catalogRepository.search(query, (next) => { if (!cancelled) setProgress(next) })
+        if (cancelled) return
+        setResults(response.results)
+        if (response.state === 'online-fallback') {
+          setSourceNote(response.archiveError ? '离线资料库暂时不可用，正在显示 Bangumi 官方 API 的在线补充。' : 'Archive 快照没有匹配结果，正在显示 Bangumi 官方 API 的在线补充。')
+        }
+      } catch (cause) {
+        if (!cancelled) { setResults([]); setError(cause instanceof Error ? cause.message : '搜索失败。') }
+      } finally { if (!cancelled) setLoading(false) }
     }, 350)
-    return () => window.clearTimeout(timer)
-  }, [kind, query])
+    return () => { cancelled = true; window.clearTimeout(timer) }
+  }, [query])
 
-  return <section className="picker" aria-label="搜索 Bangumi 数据库">
-    <label htmlFor="bangumi-search">在 Bangumi 搜索{kind === 'subject' ? '动画' : '角色'}</label>
-    <input id="bangumi-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={kind === 'subject' ? '例如：葬送的芙莉莲' : '例如：江户川柯南'} autoComplete="off" />
-    {loading && <p className="status">正在检索…</p>}
+  async function choose(result: CatalogueSearchResult) {
+    setChoosing(result.id)
+    try { onChoose(await catalogRepository.select(result)) }
+    catch (cause) { setError(cause instanceof Error ? cause.message : '无法读取该条目详情。') }
+    finally { setChoosing(undefined) }
+  }
+
+  return <section className="picker" aria-label="搜索 Bangumi Archive 资料库">
+    <label htmlFor="catalog-search">在 Bangumi 档案中搜索动画、作品或角色</label>
+    <input id="catalog-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="例如：葬送的芙莉莲、火影忍者、Frieren" autoComplete="off" />
+    {progress && loading && <p className="status" role="status">正在准备离线资料库：{progress.completed} / {progress.total} 个搜索分片{progress.cached ? '（读取本机缓存）' : ''}</p>}
+    {loading && !progress && <p className="status" role="status">正在准备离线资料库…</p>}
+    {sourceNote && <p className="status">{sourceNote}</p>}
     {error && <p className="status error" role="alert">{error}</p>}
     {results.length > 0 && <ul className="search-results">
-      {results.map((result) => <li key={result.id}><button type="button" onClick={() => onChoose(kind === 'subject' ? bangumiRepository.toSubject(result) : bangumiRepository.toCharacter(result))}>
-        <img src={result.imageUrl} alt="" /><span><strong>{result.name}</strong>{result.originalName && <small>{result.originalName}</small>}</span>
+      {results.slice(0, visible).map((result) => <li key={`${result.source}-${result.kind}-${result.id}`}><button type="button" disabled={choosing === result.id} onClick={() => void choose(result)}>
+        <span><strong>{result.name}</strong>{result.originalName && <small>{result.originalName}</small>}<em>{selectionTypeLabel(result)} · {result.source === 'archive' ? `Archive 快照${result.snapshot ? ` · ${result.snapshot}` : ''}` : '在线补充'}</em></span>
       </button></li>)}
     </ul>}
+    {results.length > visible && <button type="button" className="secondary load-more" onClick={() => setVisible((count) => count + 20)}>加载更多（剩余 {results.length - visible} 条）</button>}
     {query && !loading && !results.length && !error && <p className="status">没有匹配结果，也可以手工填写。</p>}
     <button type="button" className="text-button" onClick={onManual}>没有找到？手工填写</button>
+    <footer className="source-footer">资料来源：Bangumi Archive 固定快照；仅在快照零命中或加载失败时连接 <code>api.bgm.tv</code> 官方 API。静态资料库不会写入备份文件。</footer>
   </section>
 }

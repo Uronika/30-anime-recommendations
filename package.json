@@ -10,6 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "archive:build": "node scripts/build-archive-index.mjs",
+    "archive:benchmark": "node scripts/benchmark-archive-index.mjs",
     "research:probe": "node scripts/probe-data-sources.mjs",
     "research:benchmark": "node scripts/benchmark-data-source.mjs",
     "worker:dev": "wrangler dev",
@@ -28,6 +30,7 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "pinyin-pro": "3.29.1",
     "typescript": "latest",
     "vitest": "latest",
     "wrangler": "latest"

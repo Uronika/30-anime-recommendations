@@ -3,11 +3,14 @@ import cases from '../research/provider-test-cases.json'
 import { PROVIDER_PROFILES, mainlandStatus, normalizeSearchText, resultMatchesExpected } from '../src/research/dataSourceContract'
 
 describe('domestic data-source research contract', () => {
-  it('keeps a fixed and representative 100-case benchmark', () => {
-    expect(cases).toHaveLength(100)
-    expect(new Set(cases.map((item) => item.id)).size).toBe(100)
-    expect(cases.filter((item) => item.kind === 'subject')).toHaveLength(65)
+  it('keeps a fixed and representative 160-case benchmark', () => {
+    expect(cases).toHaveLength(160)
+    expect(new Set(cases.map((item) => item.id)).size).toBe(160)
+    expect(cases.filter((item) => item.kind === 'subject')).toHaveLength(125)
     expect(cases.filter((item) => item.kind === 'character')).toHaveLength(35)
+    expect(cases.filter((item) => item.subjectType === 'book')).toHaveLength(20)
+    expect(cases.filter((item) => item.subjectType === 'game')).toHaveLength(20)
+    expect(cases.filter((item) => item.subjectType === 'music')).toHaveLength(20)
     for (const category of ['中文名', '日文原名', '别名', '长尾', '同名', 'NSFW', '热门角色']) expect(cases.some((item) => item.category === category)).toBe(true)
   })
 

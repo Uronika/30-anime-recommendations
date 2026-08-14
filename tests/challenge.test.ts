@@ -1,17 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import { CHALLENGE_DAYS, MAX_COMMENT_LENGTH } from '../src/domain/challenge'
-import { createEmptyProfile, selectionArtwork, selectionName } from '../src/domain/types'
+import { createEmptyProfile, migrateProfile, selectionArtwork, selectionName } from '../src/domain/types'
 
 describe('challenge template', () => {
-  it('contains 30 ordered entries with character and music specializations', () => {
+  it('contains 30 ordered entries with one mixed catalogue picker', () => {
     expect(CHALLENGE_DAYS).toHaveLength(30)
-    expect(CHALLENGE_DAYS.filter((day) => day.kind === 'character').map((day) => day.day)).toEqual([6, 7, 8, 9])
-    expect(CHALLENGE_DAYS[27].kind).toBe('music')
+    expect(CHALLENGE_DAYS.every((day) => day.kind === 'catalog')).toBe(true)
   })
   it('creates a complete empty profile and keeps music display data coherent', () => {
     const profile = createEmptyProfile(); expect(profile.entries).toHaveLength(30); expect(MAX_COMMENT_LENGTH).toBe(100)
     const subject = { source: 'bangumi-subject' as const, id: 1, name: '中文名', originalName: 'Original', artwork: { imageUrl: 'https://example.test/a.jpg', alt: '中文名' } }
     const music = { source: 'music' as const, title: 'Song', relatedSubject: subject }
     expect(selectionName(music)).toBe('Song'); expect(selectionArtwork(music)).toEqual(subject.artwork)
+  })
+  it('migrates v1 backups to v2 while preserving legacy music records and defaulting covers off', () => {
+    const migrated = migrateProfile({ version: 1, nickname: '旧用户', subtitle: '', updatedAt: '2026-01-01', entries: [{ day: 28, comment: '旧歌', selection: { source: 'music', title: 'Song', relatedSubject: { source: 'manual', name: 'Anime' } } }] })
+    expect(migrated).toMatchObject({ version: 2, nickname: '旧用户', showCovers: false })
+    expect(migrated.entries).toHaveLength(30)
+    expect(migrated.entries[27].selection).toMatchObject({ source: 'music', title: 'Song' })
   })
 })

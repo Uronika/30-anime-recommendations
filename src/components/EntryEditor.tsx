@@ -1,43 +1,49 @@
 import { useState } from 'react'
 import type { ChallengeDay } from '../domain/challenge'
 import { MAX_COMMENT_LENGTH } from '../domain/challenge'
-import { selectionName, type DailyEntry, type MusicSelection, type Selection } from '../domain/types'
+import { selectionArtwork, selectionName, selectionTypeLabel, type DailyEntry, type Selection } from '../domain/types'
+import { imageCompressionService } from '../services/ImageCompressionService'
 import { SearchPicker } from './SearchPicker'
 import { ManualPicker } from './ManualPicker'
 
-interface Props { day: ChallengeDay; entry: DailyEntry; onChange: (entry: DailyEntry) => void }
+interface Props { day: ChallengeDay; entry: DailyEntry; showCovers: boolean; onChange: (entry: DailyEntry) => void }
 
-export function EntryEditor({ day, entry, onChange }: Props) {
+export function EntryEditor({ day, entry, showCovers, onChange }: Props) {
   const [mode, setMode] = useState<'search' | 'manual'>(entry.selection?.source === 'manual' ? 'manual' : 'search')
-  const [musicTitle, setMusicTitle] = useState(entry.selection?.source === 'music' ? entry.selection.title : '')
-  const [musicCredit, setMusicCredit] = useState(entry.selection?.source === 'music' ? entry.selection.credit ?? '' : '')
   const setSelection = (selection: Selection) => onChange({ ...entry, selection })
   const setComment = (comment: string) => onChange({ ...entry, comment: comment.slice(0, MAX_COMMENT_LENGTH) })
-  if (day.kind === 'music') {
-    const music = entry.selection?.source === 'music' ? entry.selection : undefined
-    const applyMusic = (relatedSubject: MusicSelection['relatedSubject']) => setSelection({ source: 'music', title: musicTitle.trim(), credit: musicCredit.trim() || undefined, relatedSubject })
-    return <div className="entry-editor"><section className="picker music-form">
-      <label htmlFor="music-title">曲目名称</label><input id="music-title" value={musicTitle} onChange={(event) => setMusicTitle(event.target.value)} maxLength={100} placeholder="例如：Brave Shine" />
-      <label htmlFor="music-credit">演唱 / 作曲信息（可选）</label><input id="music-credit" value={musicCredit} onChange={(event) => setMusicCredit(event.target.value)} maxLength={100} placeholder="例如：Aimer" />
-      <p className="field-note">选择关联动画，海报会使用它的封面。</p>
-    </section>
-    {musicTitle.trim() && <SearchPicker kind="subject" onManual={() => setMode('manual')} onChoose={(selection) => { if (selection.source === 'bangumi-subject') applyMusic(selection) }} />}
-    {mode === 'manual' && <ManualPicker onBack={() => setMode('search')} onChoose={applyMusic} />}
-    {music && <Selected selection={music} onClear={() => onChange({ ...entry, selection: undefined })} />}
-    <Comment value={entry.comment} onChange={setComment} />
-    </div>
-  }
   return <div className="entry-editor">
-    {!entry.selection && mode === 'search' && <SearchPicker kind={day.kind} onManual={() => setMode('manual')} onChoose={setSelection} />}
+    {!entry.selection && mode === 'search' && <SearchPicker onManual={() => setMode('manual')} onChoose={setSelection} />}
     {!entry.selection && mode === 'manual' && <ManualPicker onBack={() => setMode('search')} onChoose={setSelection} />}
-    {entry.selection && <Selected selection={entry.selection} onClear={() => { onChange({ ...entry, selection: undefined }); setMode('search') }} />}
+    {entry.selection && <Selected selection={entry.selection} showCovers={showCovers} onReplaceImage={(selection) => setSelection(selection)} onClear={() => { onChange({ ...entry, selection: undefined }); setMode('search') }} />}
     <Comment value={entry.comment} onChange={setComment} />
   </div>
 }
 
-function Selected({ selection, onClear }: { selection: Selection; onClear: () => void }) {
-  const image = selection.source === 'music' ? selection.relatedSubject.artwork : selection.artwork
-  return <section className="selected-item">{image ? <img src={image.imageUrl} alt="" /> : <span className="image-fallback">无图</span>}<div><span className="selection-label">已选择</span><strong>{selectionName(selection)}</strong>{selection.source === 'music' && selection.credit && <small>{selection.credit}</small>}</div><button type="button" className="text-button" onClick={onClear}>更换</button></section>
+function Selected({ selection, showCovers, onClear, onReplaceImage }: { selection: Selection; showCovers: boolean; onClear: () => void; onReplaceImage: (selection: Selection) => void }) {
+  const [error, setError] = useState('')
+  const image = selectionArtwork(selection)
+  async function upload(file?: File) {
+    if (!file) return
+    try {
+      const imageUrl = await imageCompressionService.compress(file)
+      const artwork = { imageUrl, alt: selectionName(selection) }
+      switch (selection.source) {
+        case 'archive': case 'bangumi-api': onReplaceImage({ ...selection, localArtwork: artwork }); break
+        case 'music': onReplaceImage({ ...selection, relatedSubject: { ...selection.relatedSubject, artwork } }); break
+        case 'bangumi-subject': case 'bangumi-character': case 'manual': onReplaceImage({ ...selection, artwork }); break
+      }
+      setError('')
+    } catch (cause) { setError(cause instanceof Error ? cause.message : '图片处理失败。') }
+  }
+  return <section className={`selected-item ${showCovers ? 'with-cover' : 'without-cover'}`}>
+    {showCovers && (image ? <img src={image.imageUrl} alt="" /> : <span className="image-fallback">{selectionTypeLabel(selection)}</span>)}
+    <div><span className="selection-label">已选择 · {selectionTypeLabel(selection)}</span><strong>{selectionName(selection)}</strong>{'originalName' in selection && selection.originalName && <small>{selection.originalName}</small>}{selection.source === 'music' && selection.credit && <small>{selection.credit}</small>}
+      <label className="cover-upload">上传个人图片<input type="file" accept="image/*" onChange={(event) => void upload(event.target.files?.[0])} /></label>
+      {!showCovers && <small>图片已保存，开启“显示封面图片”后会显示。</small>}
+      {error && <small className="status error">{error}</small>}
+    </div><button type="button" className="text-button" onClick={onClear}>更换</button>
+  </section>
 }
 
 function Comment({ value, onChange }: { value: string; onChange: (value: string) => void }) {

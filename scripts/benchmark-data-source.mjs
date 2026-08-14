@@ -15,12 +15,6 @@ const outputPath = option('--output')
 if (!['anilist', 'jikan', 'moegirl', 'tmdb'].includes(provider)) {
   throw new Error('--provider must be anilist, jikan, moegirl, or tmdb.')
 }
-if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
-  throw new Error('--limit must be an integer from 1 to 100.')
-}
-if (!Number.isInteger(offset) || offset < 0 || offset >= 100) {
-  throw new Error('--offset must be an integer from 0 to 99.')
-}
 if (!Number.isFinite(delayMs) || delayMs < 0) {
   throw new Error('--delay-ms must be a non-negative number.')
 }
@@ -30,6 +24,12 @@ if (provider === 'tmdb' && !process.env.TMDB_API_KEY) {
 
 const userAgent = '30-anime-recommendations-data-source-research/0.1 (https://github.com/Uronika/30-anime-recommendations)'
 const cases = JSON.parse(await readFile(new URL('../research/provider-test-cases.json', import.meta.url), 'utf8'))
+if (!Number.isInteger(limit) || limit < 1 || limit > cases.length) {
+  throw new Error(`--limit must be an integer from 1 to ${cases.length}.`)
+}
+if (!Number.isInteger(offset) || offset < 0 || offset >= cases.length) {
+  throw new Error(`--offset must be an integer from 0 to ${cases.length - 1}.`)
+}
 const selectedCases = cases.slice(offset, offset + limit)
 
 const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))
