@@ -1,5 +1,6 @@
 const BANGUMI_API = 'https://api.bgm.tv'
 const SEARCH_PATHS = new Set(['/v0/search/subjects', '/v0/search/characters'])
+const BANGUMI_USER_AGENT = '30-anime-recommendations/0.1.0 (https://github.com/Uronika/30-anime-recommendations)'
 
 function withCors(response) {
   const headers = new Headers(response.headers)
@@ -42,7 +43,9 @@ export default async function onRequest({ request }) {
   try {
     const response = await fetch(resolved.target, {
       method: request.method,
-      headers: request.method === 'POST' ? { 'content-type': 'application/json' } : undefined,
+      headers: request.method === 'POST'
+        ? { 'content-type': 'application/json', 'user-agent': BANGUMI_USER_AGENT }
+        : { 'user-agent': BANGUMI_USER_AGENT },
       body: request.method === 'POST' ? request.body : undefined,
       redirect: 'follow',
     })

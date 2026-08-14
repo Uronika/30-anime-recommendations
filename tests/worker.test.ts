@@ -17,13 +17,14 @@ describe('Bangumi EdgeOne proxy', () => {
   })
 
   it('forwards an approved detail route to the fixed Bangumi origin', async () => {
-    const upstream = vi.fn(async (_input: RequestInfo | URL) => new Response('{"id":12}', { headers: { 'content-type': 'application/json' } }))
+    const upstream = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response('{"id":12}', { headers: { 'content-type': 'application/json' } }))
     vi.stubGlobal('fetch', upstream)
     try {
       const response = await onRequest({ request: new Request('https://proxy.test/api/v0/subjects/12?responseGroup=small') })
       expect(response.status).toBe(200)
       expect(response.headers.get('Cache-Control')).toContain('max-age=86400')
       expect(String(upstream.mock.calls[0][0])).toBe('https://api.bgm.tv/v0/subjects/12?responseGroup=small')
+      expect(new Headers(upstream.mock.calls[0][1]?.headers).get('user-agent')).toContain('30-anime-recommendations/')
     } finally {
       vi.unstubAllGlobals()
     }
