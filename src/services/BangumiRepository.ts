@@ -14,7 +14,9 @@ interface SearchResponse { data: SubjectItem[] }
 interface CharacterResponse { data: CharacterItem[] }
 
 const configuredBase = import.meta.env.VITE_BANGUMI_PROXY_URL as string | undefined
-const API_BASE = (configuredBase || 'https://api.bgm.tv').replace(/\/$/, '')
+// EdgeOne Makers serves the production proxy at the same origin. A configured
+// URL remains available only while the legacy GitHub Pages deployment is live.
+const API_BASE = (configuredBase || '/api').replace(/\/$/, '')
 
 export class BangumiRepository {
   private cache = new Map<string, SearchResult[]>()
@@ -63,8 +65,7 @@ export class BangumiRepository {
   }
 
   private imageUrl(kind: 'subject' | 'character', id: number): string {
-    if (configuredBase) return `${API_BASE}/image/${kind}/${id}?type=grid`
-    return `${API_BASE}/v0/${kind === 'subject' ? 'subjects' : 'characters'}/${id}/image?type=grid`
+    return `${API_BASE}/image/${kind}/${id}?type=grid`
   }
 }
 

@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-复制 `.env.example` 为 `.env.local` 后配置部署好的 Cloudflare Worker 地址。没有配置时，开发环境将直接尝试访问 `api.bgm.tv`；可使用手工填写作为网络不可用时的回退。
+在 EdgeOne Makers 部署时，前端会通过同源的 `/api` 访问 Bangumi，EdgeOne 边缘函数负责严格白名单代理，浏览器不会直接请求 `bgm.tv`。`VITE_BANGUMI_PROXY_URL` 仅用于现有 GitHub Pages 的过渡部署；本地或 EdgeOne 环境无需配置它。
 
 ## 验证
 
@@ -21,10 +21,8 @@ npm run test:e2e
 
 ## 发布
 
-在 GitHub 仓库中启用 Pages 的 **GitHub Actions** source，并设置 `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID` 两个 Actions Secret。推送至 `main` 后，工作流会发布 GitHub Pages 与 Cloudflare Worker。
+推荐将 GitHub 仓库导入 **EdgeOne Makers**：它会按 [`edgeone.json`](./edgeone.json) 执行 `npm ci`、`npm run build`，并发布 `dist`。`edge-functions/api/[[default]].js` 会自动处理 `/api/*`，无需配置 Cloudflare Token 或另行部署 Worker。
 
-Worker 只允许代理 Bangumi 的动画/角色搜索与图片资源，不存储或记录用户填写内容。
+EdgeOne 函数只允许代理 Bangumi 的动画/角色搜索、详情和封面/头像资源，不存储或记录用户填写内容。请在 EdgeOne 控制台完成 GitHub 授权、选择此仓库和 `main` 分支，然后用它提供的预览域名验证搜索与导出；确认可用后再把该域名作为对外链接。
 
-Cloudflare 配置为可选项：设置 `CLOUDFLARE_ENABLED=true`、`BANGUMI_PROXY_URL` 两个 GitHub Actions Variable，以及 `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID` 两个 Secret 后，后续 `main` 推送会自动部署 Worker。
-
-同时在 GitHub Actions Variables 设置 `BANGUMI_PROXY_URL`（已部署 Worker 的 `workers.dev` 地址）；它会在构建时写入前端，确保生产环境的搜索与导出图片均经过代理。
+GitHub Pages 工作流会暂时保留，以免现有链接失效；其需要既有的 `BANGUMI_PROXY_URL` Actions Variable。EdgeOne 接管后可在仓库设置中删除这个 Variable 和旧的 Cloudflare Secrets。
