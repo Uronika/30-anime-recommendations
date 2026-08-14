@@ -6,4 +6,6 @@ playwright-report/
 .env
 .env.local
 .wrangler/
+.cache/
+public/archive-data/
 *.tsbuildinfo

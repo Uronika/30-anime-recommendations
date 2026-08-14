@@ -1,4 +1,4 @@
-export type EntryKind = 'subject' | 'character' | 'music'
+export type EntryKind = 'catalog'
 
 export interface ChallengeDay {
   day: number
@@ -18,7 +18,7 @@ const titles = [
 export const CHALLENGE_DAYS: readonly ChallengeDay[] = titles.map((title, index) => ({
   day: index + 1,
   title,
-  kind: index + 1 === 28 ? 'music' : [6, 7, 8, 9].includes(index + 1) ? 'character' : 'subject',
+  kind: 'catalog',
 }))
 
 export const MAX_COMMENT_LENGTH = 100

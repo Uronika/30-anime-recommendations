@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-14T09:37:14.105Z",
+  "provider": "anilist",
+  "scope": "Smoke test only. This is not the fixed 100-case benchmark and is not mainland carrier validation.",
+  "runs": [
+    {
+      "caseOffset": 0,
+      "requestedCases": 8,
+      "kind": "subject",
+      "summary": { "completed": 8, "errors": 0, "matches": 5, "matchRate": 0.625, "artworkCoverage": 0.625 }
+    },
+    {
+      "caseOffset": 65,
+      "requestedCases": 2,
+      "kind": "character",
+      "summary": { "completed": 2, "errors": 0, "matches": 1, "matchRate": 0.5, "artworkCoverage": 0.5 },
+      "results": [
+        { "id": "character-01", "query": "漩涡鸣人", "state": "no-result", "matched": false, "artworkAvailable": false },
+        { "id": "character-02", "query": "江户川柯南", "state": "completed", "matched": true, "artworkAvailable": true }
+      ]
+    }
+  ],
+  "interpretation": "The sample demonstrates that AniList query paths work on this network but Chinese matching is incomplete. Do not extrapolate these ten cases to a final coverage score."
+}

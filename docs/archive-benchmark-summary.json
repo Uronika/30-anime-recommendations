@@ -1,0 +1,16 @@
+{
+  "snapshot": "dump-2026-08-11.210343Z.zip",
+  "testedAt": "2026-08-14",
+  "total": 160,
+  "passed": 152,
+  "categories": {
+    "中文名": { "passed": 45, "total": 46, "rate": 0.9783, "minimum": 0.95 },
+    "日文原名": { "passed": 33, "total": 34, "rate": 0.9706, "minimum": 0.95 },
+    "别名": { "passed": 18, "total": 22, "rate": 0.8182, "minimum": 0.8 },
+    "长尾": { "passed": 12, "total": 13, "rate": 0.9231, "minimum": 0.8 },
+    "同名": { "passed": 12, "total": 12, "rate": 1, "minimum": 0.8 },
+    "NSFW": { "passed": 13, "total": 13, "rate": 1, "minimum": 0.8 },
+    "热门角色": { "passed": 19, "total": 20, "rate": 0.95, "minimum": 0.8 }
+  },
+  "command": "npm run archive:benchmark -- --assert --output artifacts/archive-benchmark.json"
+}
