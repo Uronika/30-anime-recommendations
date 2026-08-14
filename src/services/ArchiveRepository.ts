@@ -1,4 +1,4 @@
-import type { CatalogKind, CatalogSelection, SubjectType } from '../domain/types'
+import type { Artwork, CatalogKind, CatalogSelection, SubjectType } from '../domain/types'
 import { challengeRepository } from './ChallengeRepository'
 
 export interface CatalogueSearchResult {
@@ -13,6 +13,7 @@ export interface CatalogueSearchResult {
   source: 'archive' | 'bangumi-api'
   snapshot?: string
   summary?: string
+  remoteArtwork?: Artwork
 }
 
 interface SearchForms { text: string[]; pinyin: string[] }

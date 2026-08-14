@@ -19,6 +19,8 @@ export interface CatalogSelection {
   nsfw: boolean
   popularity: number
   snapshot?: string
+  /** Official API cover URL. A personal upload always takes precedence. */
+  remoteArtwork?: Artwork
   /** Personal upload only. It is never sent to a catalogue service. */
   localArtwork?: Artwork
 }
@@ -129,7 +131,8 @@ export function selectionName(selection?: Selection): string {
 export function selectionArtwork(selection?: Selection): Artwork | undefined {
   if (!selection) return undefined
   switch (selection.source) {
-    case 'archive': case 'bangumi-api': return selection.localArtwork
+    case 'archive': return selection.localArtwork
+    case 'bangumi-api': return selection.localArtwork ?? selection.remoteArtwork
     case 'music': return selection.relatedSubject.artwork
     case 'bangumi-subject': case 'bangumi-character': case 'manual': return selection.artwork
   }

@@ -33,6 +33,8 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): st
 async function loadImage(url: string): Promise<HTMLImageElement | undefined> {
   return new Promise((resolve) => {
     const image = new Image()
+    // Remote artwork must pass CORS before it can touch the export canvas.
+    image.crossOrigin = 'anonymous'
     image.onload = () => resolve(image)
     image.onerror = () => resolve(undefined)
     image.src = url

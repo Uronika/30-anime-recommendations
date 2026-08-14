@@ -42,13 +42,19 @@ test('opens the first day and chooses a static Archive item with cover reflow', 
 test('can bypass the offline Archive index and search the official API directly', async ({ page }) => {
   let archiveRequests = 0
   await page.route('**/archive-data/**', (route) => { archiveRequests += 1; return route.abort() })
-  await page.route('https://api.bgm.tv/v0/search/subjects?limit=20', (route) => route.fulfill({ json: { data: [{ id: 7, type: 2, name: 'NARUTO', name_cn: '火影忍者', collection_total: 100 }] } }))
+  await page.route('https://images.example.test/naruto.svg', (route) => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="120"><rect width="80" height="120" fill="#365e3b"/></svg>' }))
+  await page.route('https://api.bgm.tv/v0/search/subjects?limit=20', (route) => route.fulfill({ json: { data: [{ id: 7, type: 2, name: 'NARUTO', name_cn: '火影忍者', collection_total: 100, images: { large: 'https://images.example.test/naruto.svg' } }] } }))
   await page.route('https://api.bgm.tv/v0/search/characters?limit=20', (route) => route.fulfill({ json: { data: [] } }))
   await page.goto('/')
   await page.getByRole('checkbox', { name: /直接使用 Bangumi 官方 API/ }).check()
+  await page.getByRole('checkbox', { name: /显示封面图片/ }).check()
   await page.getByLabel('搜索动画、作品或角色').fill('火影忍者')
   await expect(page.getByRole('button', { name: /火影忍者/ })).toBeVisible()
   await expect(page.getByText('本次搜索未加载离线资料库。')).toBeVisible()
+  await page.getByRole('button', { name: /火影忍者/ }).click()
+  await expect(page.locator('.selected-item img')).toHaveAttribute('src', 'https://images.example.test/naruto.svg')
+  const [pngDownload] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: '下载 5×6 PNG' }).click()])
+  expect(pngDownload.suggestedFilename()).toContain('30部动漫推荐')
   expect(archiveRequests).toBe(0)
 })
 

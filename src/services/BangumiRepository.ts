@@ -1,6 +1,7 @@
-import type { CatalogSelection, SubjectType } from '../domain/types'
+import type { Artwork, CatalogSelection, SubjectType } from '../domain/types'
 import type { CatalogueSearchResult } from './ArchiveRepository'
 
+interface ImageVariants { large?: string; common?: string; medium?: string; grid?: string; small?: string }
 interface SubjectItem {
   id: number
   type?: number
@@ -9,12 +10,18 @@ interface SubjectItem {
   summary?: string
   nsfw?: boolean
   collection_total?: number
+  images?: ImageVariants | null
 }
-interface CharacterItem { id: number; name: string; summary?: string; collects?: number }
+interface CharacterItem { id: number; name: string; summary?: string; collects?: number; images?: ImageVariants | null }
 interface SearchResponse<T> { data?: T[] }
 
 const API_BASE = 'https://api.bgm.tv'
 const subjectTypes: Record<number, SubjectType | undefined> = { 1: 'book', 2: 'anime', 3: 'music', 4: 'game' }
+
+function remoteArtwork(images: ImageVariants | null | undefined, alt: string): Artwork | undefined {
+  const imageUrl = [images?.large, images?.common, images?.medium, images?.grid, images?.small].find((value) => typeof value === 'string' && value.trim())
+  return imageUrl ? { imageUrl, alt } : undefined
+}
 
 export class BangumiRepository {
   async search(keyword: string): Promise<CatalogueSearchResult[]> {
@@ -32,7 +39,7 @@ export class BangumiRepository {
     return {
       source: 'bangumi-api', id: result.id, kind: result.kind, subjectType: result.subjectType, name: result.name,
       originalName: result.originalName, aliases: result.aliases, nsfw: result.nsfw, popularity: result.popularity,
-      summary: result.summary,
+      summary: result.summary, remoteArtwork: result.remoteArtwork,
     }
   }
 
@@ -43,9 +50,11 @@ export class BangumiRepository {
       const subjectType = subjectTypes[item.type ?? 0]
       if (!subjectType) continue
       const chinese = item.name_cn?.trim()
+      const name = chinese || item.name
       results.push({
-        id: item.id, kind: 'subject' as const, subjectType, name: chinese || item.name, originalName: chinese ? item.name : undefined,
+        id: item.id, kind: 'subject' as const, subjectType, name, originalName: chinese ? item.name : undefined,
         aliases: [], nsfw: Boolean(item.nsfw), popularity: Number(item.collection_total) || 0, source: 'bangumi-api' as const, summary: item.summary,
+        remoteArtwork: remoteArtwork(item.images, name),
       })
     }
     return results
@@ -56,6 +65,7 @@ export class BangumiRepository {
     return response.map((item) => ({
       id: item.id, kind: 'character' as const, name: item.name, aliases: [], nsfw: false,
       popularity: Number(item.collects) || 0, source: 'bangumi-api' as const, summary: item.summary,
+      remoteArtwork: remoteArtwork(item.images, item.name),
     }))
   }
 
