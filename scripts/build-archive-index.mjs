@@ -5,8 +5,8 @@ import { basename, dirname, join, resolve } from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import { Readable } from 'node:stream'
 import { createInterface } from 'node:readline'
-import { spawn } from 'node:child_process'
 import { pinyin } from 'pinyin-pro'
+import unzipper from 'unzipper'
 import { ALIAS_FIELDS, ARCHIVE_SNAPSHOT, detailShardFor, extractWhitelistedAliases, normalizeSearchText, popularityOf, subjectTypeFromBangumi } from './archive-snapshot.mjs'
 
 const SEARCH_SHARD_COUNT = 64
@@ -67,18 +67,13 @@ async function ensureArchive() {
 }
 
 async function* archiveLines(entry) {
-  const child = spawn('tar', ['-xOf', archivePath, entry], { stdio: ['ignore', 'pipe', 'pipe'] })
-  let stderr = ''
-  child.stderr.on('data', (chunk) => { stderr += String(chunk) })
-  const closed = new Promise((resolvePromise, rejectPromise) => {
-    child.once('error', rejectPromise)
-    child.once('close', (code) => code === 0 ? resolvePromise() : rejectPromise(new Error(`Unable to read ${entry} from archive: ${stderr.trim()}`)))
-  })
-  const lines = createInterface({ input: child.stdout, crlfDelay: Infinity })
+  const archive = await unzipper.Open.file(archivePath)
+  const target = archive.files.find((file) => file.path === entry)
+  if (!target) throw new Error(`Unable to read ${entry} from Archive ZIP.`)
+  const lines = createInterface({ input: target.stream(), crlfDelay: Infinity })
   for await (const line of lines) {
     if (line.trim()) yield JSON.parse(line)
   }
-  await closed
 }
 
 function recordFromSubject(subject) {
