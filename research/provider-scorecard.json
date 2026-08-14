@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-08-14T09:33:20.547Z",
+  "methodology": "HTTP sample is only a single-network observation. A provider remains 未验证 until two different mainland carriers report a successful browser test.",
+  "coverageScale": "not-measured means the fixed 100-case benchmark has not been completed; it is not a zero score.",
+  "providers": [
+    {
+      "id": "bangumi-archive",
+      "tier": "baseline",
+      "productionRecommendation": "baseline-only",
+      "coverage": { "subjects": "not-measured", "characters": "not-measured", "relations": "not-measured", "artwork": "not-measured", "chinese": "not-measured", "aliases": "not-measured", "canvas": "unverified" },
+      "operations": { "publicApi": true, "token": "none-for-archive", "rateLimit": "weekly archive refresh", "license": "Bangumi developer and copyright terms" },
+      "sample": { "status": "reachable", "httpStatus": 200, "endpoint": "https://raw.githubusercontent.com/bangumi/Archive/master/aux/latest.json" },
+      "mainlandStatus": "未验证",
+      "notes": ["官方静态归档包含条目、角色和关联数据", "不是浏览器大陆直连替代服务"]
+    },
+    {
+      "id": "anilist",
+      "tier": "official",
+      "productionRecommendation": "candidate",
+      "coverage": { "subjects": "smoke-only", "characters": "smoke-only", "relations": "not-measured", "artwork": "smoke-only", "chinese": "not-measured", "aliases": "not-measured", "canvas": "unverified" },
+      "operations": { "publicApi": true, "token": "none-for-public-query", "rateLimit": "temporarily 30 RPM; normally 90 RPM", "license": "AniList terms require review before production" },
+      "sample": { "status": "reachable", "httpStatus": 200, "endpoint": "https://graphql.anilist.co" },
+      "mainlandStatus": "未验证",
+      "notes": ["GET 404 证明端点可达；正式 GraphQL POST 与中文覆盖须基准测试", "官方当前有临时降级限流风险"]
+    },
+    {
+      "id": "tmdb",
+      "tier": "official",
+      "productionRecommendation": "supplement-only",
+      "coverage": { "subjects": "not-measured", "characters": "unsupported", "relations": "not-measured", "artwork": "not-measured", "chinese": "not-measured", "aliases": "not-measured", "canvas": "unverified" },
+      "operations": { "publicApi": true, "token": "required", "rateLimit": "not-measured", "license": "TMDB attribution required; commercial license separately required" },
+      "sample": { "status": "network-error", "httpStatus": null, "endpoint": "https://api.themoviedb.org/3/search/tv" },
+      "mainlandStatus": "未验证",
+      "notes": ["401 证明端点可达但无 Key", "中文和海报强，角色检索不是动漫专用"]
+    },
+    {
+      "id": "jikan",
+      "tier": "community",
+      "productionRecommendation": "research-only",
+      "coverage": { "subjects": "not-measured", "characters": "not-measured", "relations": "not-measured", "artwork": "not-measured", "chinese": "not-measured", "aliases": "not-measured", "canvas": "unverified" },
+      "operations": { "publicApi": true, "token": "none", "rateLimit": "not-measured", "license": "unofficial MyAnimeList API; do not use as production default" },
+      "sample": { "status": "unexpected-status", "httpStatus": 504, "endpoint": "https://api.jikan.moe/v4/anime?q=naruto&limit=1" },
+      "mainlandStatus": "未验证",
+      "notes": ["数据丰富", "非官方 MyAnimeList 抓取 API"]
+    },
+    {
+      "id": "moegirl",
+      "tier": "community",
+      "productionRecommendation": "supplement-only",
+      "coverage": { "subjects": "not-measured", "characters": "not-measured", "relations": "not-measured", "artwork": "not-measured", "chinese": "not-measured", "aliases": "not-measured", "canvas": "unverified" },
+      "operations": { "publicApi": true, "token": "none-for-basic-query", "rateLimit": "not-measured", "license": "CC BY-NC-SA claim must be verified for each planned use" },
+      "sample": { "status": "reachable", "httpStatus": 200, "endpoint": "https://zh.moegirl.org.cn/api.php?action=query&meta=siteinfo&format=json" },
+      "mainlandStatus": "未验证",
+      "notes": ["中文作品和角色强", "目录结构、封面和许可须逐项核验"]
+    },
+    {
+      "id": "bangumi-data",
+      "tier": "community",
+      "productionRecommendation": "supplement-only",
+      "coverage": { "subjects": "not-measured", "characters": "unsupported", "relations": "unsupported", "artwork": "not-measured", "chinese": "not-measured", "aliases": "not-measured", "canvas": "unverified" },
+      "operations": { "publicApi": true, "token": "none", "rateLimit": "static CDN", "license": "CC BY 4.0 with attribution" },
+      "sample": { "status": "reachable", "httpStatus": 200, "endpoint": "https://unpkg.com/bangumi-data@0.3/dist/data.json" },
+      "mainlandStatus": "未验证",
+      "notes": ["静态季番与标题映射", "没有独立角色库"]
+    },
+    {
+      "id": "anime-offline-database",
+      "tier": "community",
+      "productionRecommendation": "supplement-only",
+      "coverage": { "subjects": "not-measured", "characters": "unsupported", "relations": "unsupported", "artwork": "not-measured", "chinese": "not-measured", "aliases": "not-measured", "canvas": "unverified" },
+      "operations": { "publicApi": true, "token": "none", "rateLimit": "release download", "license": "verify license embedded in each dataset release and image upstreams" },
+      "sample": { "status": "network-error", "httpStatus": null, "endpoint": "https://api.github.com/repos/ipkpjersi/anime-offline-database/releases/latest" },
+      "mainlandStatus": "未验证",
+      "notes": ["适合离线作品、别名和图片地址映射", "无角色关联能力"]
+    },
+    {
+      "id": "bilibili-web",
+      "tier": "excluded",
+      "productionRecommendation": "do-not-use",
+      "coverage": { "subjects": "not-measured", "characters": "unsupported", "relations": "unsupported", "artwork": "not-measured", "chinese": "not-measured", "aliases": "not-measured", "canvas": "unverified" },
+      "operations": { "publicApi": false, "token": "not-applicable", "rateLimit": "anti-automation response observed", "license": "no stable public metadata API" },
+      "sample": { "status": "blocked", "httpStatus": 412, "endpoint": "https://api.bilibili.com/x/web-interface/search/type" },
+      "mainlandStatus": "未验证",
+      "notes": ["非公开 Web 搜索接口返回 412", "不作为第三方元数据 API"]
+    }
+  ]
+}

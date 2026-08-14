@@ -70,6 +70,12 @@ npm run test:e2e
 
 单元测试覆盖题目分类、名称回退、短评限制、选择序列化、图片压缩与备份兼容性；端到端测试覆盖填写、自动保存、手工图片、导入导出和 PNG 海报生成。
 
+## 国内数据源探索
+
+`research/domestic-anime-data` 分支保留一套不影响线上站点的数据源评测工具：固定的 100 条测试集、统一来源适配契约、HTTP 探测、节流检索基准与机器可读评分表。结论和三网验收规则见 [数据源评测报告](./docs/data-source-evaluation.md)。
+
+该研究分支不替换当前 Bangumi 运行时数据源，也不改动 `main`、`gh-pages`、正式网址或任何浏览器本地数据。
+
 ## GitHub Pages 发布
 
 正式地址由 GitHub Pages 提供：<https://uronika.github.io/30-anime-recommendations/>。
