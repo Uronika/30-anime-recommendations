@@ -20,7 +20,8 @@ const subjectTypes: Record<number, SubjectType | undefined> = { 1: 'book', 2: 'a
 
 function remoteArtwork(images: ImageVariants | null | undefined, alt: string): Artwork | undefined {
   const imageUrl = [images?.large, images?.common, images?.medium, images?.grid, images?.small].find((value) => typeof value === 'string' && value.trim())
-  return imageUrl ? { imageUrl, alt } : undefined
+  if (!imageUrl) return undefined
+  return { imageUrl, alt }
 }
 
 export class BangumiRepository {

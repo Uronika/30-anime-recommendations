@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { ChallengeDay } from '../domain/challenge'
 import { MAX_COMMENT_LENGTH } from '../domain/challenge'
-import { selectionArtwork, selectionName, selectionTypeLabel, type DailyEntry, type Selection } from '../domain/types'
+import { selectionName, selectionTypeLabel, type DailyEntry, type Selection } from '../domain/types'
+import { displayArtwork } from '../services/BangumiImageProxy'
 import { imageCompressionService } from '../services/ImageCompressionService'
 import { SearchPicker } from './SearchPicker'
 import { ManualPicker } from './ManualPicker'
@@ -23,7 +24,7 @@ export function EntryEditor({ day, entry, showCovers, onChange }: Props) {
 function Selected({ selection, showCovers, onClear, onReplaceImage }: { selection: Selection; showCovers: boolean; onClear: () => void; onReplaceImage: (selection: Selection) => void }) {
   const [error, setError] = useState('')
   const [failedImageUrl, setFailedImageUrl] = useState<string>()
-  const image = selectionArtwork(selection)
+  const image = displayArtwork(selection)
   useEffect(() => { setFailedImageUrl(undefined) }, [image?.imageUrl])
   const displayImage = image?.imageUrl === failedImageUrl ? undefined : image
   const hasApiArtwork = selection.source === 'bangumi-api' && Boolean(selection.remoteArtwork) && !selection.localArtwork
