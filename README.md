@@ -25,4 +25,6 @@ npm run test:e2e
 
 Worker 只允许代理 Bangumi 的动画/角色搜索与图片资源，不存储或记录用户填写内容。
 
+Cloudflare 配置为可选项：设置 `CLOUDFLARE_ENABLED=true`、`BANGUMI_PROXY_URL` 两个 GitHub Actions Variable，以及 `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID` 两个 Secret 后，后续 `main` 推送会自动部署 Worker。
+
 同时在 GitHub Actions Variables 设置 `BANGUMI_PROXY_URL`（已部署 Worker 的 `workers.dev` 地址）；它会在构建时写入前端，确保生产环境的搜索与导出图片均经过代理。

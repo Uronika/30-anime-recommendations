@@ -1,9 +1,9 @@
 name: Deploy
 
-on:
+"on":
   push:
     branches: [main]
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -36,6 +36,7 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v4
   deploy-worker:
+    if: ${{ vars.CLOUDFLARE_ENABLED == 'true' }}
     needs: test-build
     runs-on: ubuntu-latest
     steps:
