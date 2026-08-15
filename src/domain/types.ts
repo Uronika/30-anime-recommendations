@@ -132,7 +132,11 @@ export function selectionArtwork(selection?: Selection): Artwork | undefined {
   if (!selection) return undefined
   switch (selection.source) {
     case 'archive': return selection.localArtwork
-    case 'bangumi-api': return selection.localArtwork ?? selection.remoteArtwork
+    case 'bangumi-api': {
+      if (selection.localArtwork || !selection.remoteArtwork) return selection.localArtwork ?? selection.remoteArtwork
+      const resource = selection.kind === 'subject' ? 'subjects' : 'characters'
+      return { ...selection.remoteArtwork, imageUrl: `https://api.bgm.tv/v0/${resource}/${selection.id}/image?type=grid` }
+    }
     case 'music': return selection.relatedSubject.artwork
     case 'bangumi-subject': case 'bangumi-character': case 'manual': return selection.artwork
   }

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CHALLENGE_DAYS, MAX_COMMENT_LENGTH } from '../src/domain/challenge'
 import { createEmptyProfile, migrateProfile, selectionArtwork, selectionName } from '../src/domain/types'
-import { displayArtwork } from '../src/services/BangumiImageProxy'
 
 describe('challenge template', () => {
   it('contains 30 ordered entries with one mixed catalogue picker', () => {
@@ -16,8 +15,7 @@ describe('challenge template', () => {
   })
   it('prefers a personal image over an API-provided remote cover', () => {
     const apiSelection = { source: 'bangumi-api' as const, id: 1, kind: 'subject' as const, subjectType: 'anime' as const, name: '作品', aliases: [], nsfw: false, popularity: 0, remoteArtwork: { imageUrl: 'https://images.example.test/remote.jpg', alt: '作品' } }
-    expect(selectionArtwork(apiSelection)).toEqual(apiSelection.remoteArtwork)
-    expect(displayArtwork(apiSelection)).toEqual({ imageUrl: 'https://30-anime-recommendations-image-proxy.30-anime-recommendation.workers.dev/image/subject/1?type=large', alt: '作品' })
+    expect(selectionArtwork(apiSelection)).toEqual({ imageUrl: 'https://api.bgm.tv/v0/subjects/1/image?type=grid', alt: '作品' })
     expect(selectionArtwork({ ...apiSelection, localArtwork: { imageUrl: 'data:image/jpeg;base64,test', alt: '自定义' } })).toEqual({ imageUrl: 'data:image/jpeg;base64,test', alt: '自定义' })
   })
   it('migrates v1 backups to v2 while preserving legacy music records and defaulting covers off', () => {

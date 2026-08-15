@@ -14,11 +14,11 @@ describe('BangumiRepository', () => {
     vi.stubGlobal('fetch', fetchMock)
     const results = await new BangumiRepository().search('test')
     expect(results).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: 12, kind: 'subject', name: '中文名', originalName: 'Original', subjectType: 'anime', source: 'bangumi-api', remoteArtwork: { imageUrl: 'https://images.example.test/subject.jpg', alt: '中文名' } }),
-      expect.objectContaining({ id: 7, kind: 'character', source: 'bangumi-api', remoteArtwork: { imageUrl: 'https://images.example.test/character.jpg', alt: '角色' } }),
+      expect.objectContaining({ id: 12, kind: 'subject', name: '中文名', originalName: 'Original', subjectType: 'anime', source: 'bangumi-api', remoteArtwork: { imageUrl: 'https://api.bgm.tv/v0/subjects/12/image?type=grid', alt: '中文名' } }),
+      expect.objectContaining({ id: 7, kind: 'character', source: 'bangumi-api', remoteArtwork: { imageUrl: 'https://api.bgm.tv/v0/characters/7/image?type=grid', alt: '角色' } }),
     ]))
     expect(results.some((item) => item.id === 99)).toBe(false)
     const selected = await new BangumiRepository().select(results.find((item) => item.id === 12)!)
-    expect(selected.remoteArtwork).toEqual({ imageUrl: 'https://images.example.test/subject.jpg', alt: '中文名' })
+    expect(selected.remoteArtwork).toEqual({ imageUrl: 'https://api.bgm.tv/v0/subjects/12/image?type=grid', alt: '中文名' })
   })
 })

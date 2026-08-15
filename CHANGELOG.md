@@ -7,7 +7,7 @@
 ### 新增
 
 - 搜索器增加“直接使用 Bangumi 官方 API”选项；用户可主动跳过 Archive 离线资料库，结果会清楚标注来源。
-- API 搜索结果自动保存经白名单图片 Worker 转发的官方封面；编辑页与 PNG 导出可共享同一张可安全绘制的图片。Worker 只允许按 Bangumi 条目／角色 ID 读取图片，不代理搜索或任意 URL，也不保存用户数据。
+- API 搜索结果固定使用 Bangumi 官方 `/image` 端点（`api.bgm.tv/v0/subjects|characters/:id/image?type=grid`），恢复 v0.1 的封面预览与 PNG 导出路径；个人图片优先。
 
 ### 优化
 

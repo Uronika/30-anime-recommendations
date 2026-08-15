@@ -1,7 +1,6 @@
 import type { Artwork, CatalogSelection, SubjectType } from '../domain/types'
 import type { CatalogueSearchResult } from './ArchiveRepository'
 
-interface ImageVariants { large?: string; common?: string; medium?: string; grid?: string; small?: string }
 interface SubjectItem {
   id: number
   type?: number
@@ -10,18 +9,16 @@ interface SubjectItem {
   summary?: string
   nsfw?: boolean
   collection_total?: number
-  images?: ImageVariants | null
 }
-interface CharacterItem { id: number; name: string; summary?: string; collects?: number; images?: ImageVariants | null }
+interface CharacterItem { id: number; name: string; summary?: string; collects?: number }
 interface SearchResponse<T> { data?: T[] }
 
 const API_BASE = 'https://api.bgm.tv'
 const subjectTypes: Record<number, SubjectType | undefined> = { 1: 'book', 2: 'anime', 3: 'music', 4: 'game' }
 
-function remoteArtwork(images: ImageVariants | null | undefined, alt: string): Artwork | undefined {
-  const imageUrl = [images?.large, images?.common, images?.medium, images?.grid, images?.small].find((value) => typeof value === 'string' && value.trim())
-  if (!imageUrl) return undefined
-  return { imageUrl, alt }
+function remoteArtwork(kind: 'subject' | 'character', id: number, alt: string): Artwork {
+  const resource = kind === 'subject' ? 'subjects' : 'characters'
+  return { imageUrl: `${API_BASE}/v0/${resource}/${id}/image?type=grid`, alt }
 }
 
 export class BangumiRepository {
@@ -55,7 +52,7 @@ export class BangumiRepository {
       results.push({
         id: item.id, kind: 'subject' as const, subjectType, name, originalName: chinese ? item.name : undefined,
         aliases: [], nsfw: Boolean(item.nsfw), popularity: Number(item.collection_total) || 0, source: 'bangumi-api' as const, summary: item.summary,
-        remoteArtwork: remoteArtwork(item.images, name),
+        remoteArtwork: remoteArtwork('subject', item.id, name),
       })
     }
     return results
@@ -66,7 +63,7 @@ export class BangumiRepository {
     return response.map((item) => ({
       id: item.id, kind: 'character' as const, name: item.name, aliases: [], nsfw: false,
       popularity: Number(item.collects) || 0, source: 'bangumi-api' as const, summary: item.summary,
-      remoteArtwork: remoteArtwork(item.images, item.name),
+      remoteArtwork: remoteArtwork('character', item.id, item.name),
     }))
   }
 
