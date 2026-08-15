@@ -7,7 +7,7 @@
 ### 新增
 
 - 搜索器增加“直接使用 Bangumi 官方 API”选项；用户可主动跳过 Archive 离线资料库，结果会清楚标注来源。
-- API 搜索结果固定使用 Bangumi 官方 `/image` 端点（`api.bgm.tv/v0/subjects|characters/:id/image?type=grid`），恢复 v0.1 的封面预览与 PNG 导出路径；个人图片优先。
+- API 搜索结果固定使用 Bangumi 官方 `/image` 端点（`api.bgm.tv/v0/subjects|characters/:id/image?type=grid`）预览；PNG 导出沿用 v0.1 图片 Worker 的 CORS 响应，确保角色头像可绘制到海报。个人图片优先。
 
 ### 优化
 

@@ -44,6 +44,10 @@ test('can bypass the offline Archive index and search the official API directly'
   await page.route('**/archive-data/**', (route) => { archiveRequests += 1; return route.abort() })
   await page.route('https://api.bgm.tv/v0/subjects/7/image?type=grid', (route) => route.fulfill({
     contentType: 'image/svg+xml',
+    body: '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="120"><rect width="80" height="120" fill="#365e3b"/></svg>',
+  }))
+  await page.route('https://30-anime-recommendations-proxy.30-anime-recommendation.workers.dev/image/subject/7?type=grid', (route) => route.fulfill({
+    contentType: 'image/svg+xml',
     headers: { 'Access-Control-Allow-Origin': '*', 'Cross-Origin-Resource-Policy': 'cross-origin' },
     body: '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="120"><rect width="80" height="120" fill="#365e3b"/></svg>',
   }))
@@ -69,7 +73,7 @@ test('can bypass the offline Archive index and search the official API directly'
   })
   const [pngDownload] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: '下载 5×6 PNG' }).click()])
   expect(pngDownload.suggestedFilename()).toContain('30部动漫推荐')
-  await expect.poll(() => page.evaluate(() => (window as Window & { __posterImageSources?: string[] }).__posterImageSources ?? [])).toContain('https://api.bgm.tv/v0/subjects/7/image?type=grid')
+  await expect.poll(() => page.evaluate(() => (window as Window & { __posterImageSources?: string[] }).__posterImageSources ?? [])).toContain('https://30-anime-recommendations-proxy.30-anime-recommendation.workers.dev/image/subject/7?type=grid')
   expect(archiveRequests).toBe(0)
 })
 

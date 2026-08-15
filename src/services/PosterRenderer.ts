@@ -1,5 +1,6 @@
 import { CHALLENGE_DAYS } from '../domain/challenge'
-import { selectionArtwork, selectionName, selectionTypeLabel, type DailyEntry, type ChallengeProfile } from '../domain/types'
+import { selectionName, selectionTypeLabel, type DailyEntry, type ChallengeProfile } from '../domain/types'
+import { posterArtwork } from './PosterArtwork'
 
 const CANVAS_WIDTH = 3000
 const COLUMNS = 5
@@ -84,7 +85,7 @@ export class PosterRenderer {
     const completed = profile.entries.filter((entry) => entry.selection).length
     ctx.fillStyle = '#6d776e'; ctx.font = font(32, 600); ctx.fillText(`${completed} / 30 已填写 · 动画档案册`, GUTTER, 285)
 
-    const imageEntries = profile.showCovers ? cards.map((card) => selectionArtwork(card.entry.selection)?.imageUrl).filter((url): url is string => Boolean(url)) : []
+    const imageEntries = profile.showCovers ? cards.map((card) => posterArtwork(card.entry.selection)?.imageUrl).filter((url): url is string => Boolean(url)) : []
     const images = new Map(await Promise.all(imageEntries.map(async (url) => [url, await loadImage(url)] as const)))
     let rowY = HEADER_HEIGHT + GUTTER
     for (let row = 0; row < 6; row += 1) {
@@ -98,7 +99,7 @@ export class PosterRenderer {
           ctx.fillStyle = '#4f7254'; ctx.font = font(26, 750); ctx.fillText(`DAY ${String(card.day.day).padStart(2, '0')}  ${card.day.title}`, x + PAD, y + PAD + 25)
           let cursorY = y + PAD + 54
           const coverX = x + PAD; const coverWidth = CELL_WIDTH - PAD * 2
-          const artwork = selectionArtwork(card.entry.selection)
+          const artwork = posterArtwork(card.entry.selection)
           const image = artwork ? images.get(artwork.imageUrl) : undefined
           ctx.save(); roundedRect(ctx, coverX, cursorY, coverWidth, COVER_HEIGHT, 12); ctx.clip()
           if (image) {

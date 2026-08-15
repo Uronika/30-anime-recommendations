@@ -10,7 +10,7 @@
 - 静态资料库覆盖书籍/漫画、动画、游戏、音乐和角色，默认也显示 NSFW 记录。原有 Day 28 的“曲目 + 关联动画”旧备份仍可导入、显示、导出。
 - 搜索支持中文名、日文原名、白名单别名、中文全拼与拼音首字母；第一次搜索会显示离线资料库的真实准备进度。
 - 静态快照有结果时不请求网络 API；零结果或静态加载失败时，才直接请求 Bangumi 官方 `api.bgm.tv` 作为在线补充。也可在搜索框下主动勾选“直接使用 Bangumi 官方 API”，跳过离线资料库；在线补充也失败时可继续手工填写。
-- 直连 Bangumi API 的条目与角色会固定记录官方 `api.bgm.tv` 的图片端点（`/v0/subjects|characters/:id/image?type=grid`）；这是 v0.1 已使用的预览与 PNG 导出路径。个人上传图片仍优先覆盖；图片服务暂不可用时自动使用类型占位卡，下载不会中断。
+- 直连 Bangumi API 的条目与角色会固定记录官方 `api.bgm.tv` 的图片端点（`/v0/subjects|characters/:id/image?type=grid`），编辑页直接用它预览。PNG 导出沿用 v0.1 的图片专用 Worker，以获得角色头像绘制 Canvas 所需的 CORS 响应；个人上传图片仍优先覆盖。图片服务暂不可用时自动使用类型占位卡，下载不会中断。
 - 档案级“显示封面图片”默认关闭。关闭时编辑页和 PNG 海报均不会预留空白图片区；开启时优先显示个人图片，缺图时显示类型占位卡。
 - 所有档案、短评、开关与个人图片保存在 IndexedDB；可完整导入/导出 JSON。资料库缓存不进入备份，清除本机档案时会一并移除。
 
@@ -28,7 +28,7 @@
 
 原始 ZIP 不会公开部署。发布物只含搜索分片、详情分片与快照清单，不含原始 `infobox` 或用户数据。完整字段、缓存、回退与验收规则见 [Archive 静态主源说明](./docs/archive-static-source.md)。
 
-Pages 是纯静态网站，不再默认调用 Cloudflare Worker 或其他代理。若当前网络无法直连 `api.bgm.tv`，不影响已有 Archive 静态资料库与手工填写；仅“在线补充”和官方封面不可用。
+Pages 的目录搜索仍是纯静态优先，不经由 Worker。仅在生成 PNG 且选中了 Bangumi API 条目／角色时，浏览器才请求 v0.1 的图片专用 Worker；若当前网络无法直连 `api.bgm.tv`，不影响已有 Archive 静态资料库与手工填写，仅“在线补充”和官方封面不可用。
 
 ## 隐私与数据来源
 
@@ -61,7 +61,7 @@ npm run test:e2e
 3. 运行单元测试与静态搜索基准；
 4. 构建 `dist` 并发布 GitHub Pages。
 
-不需要配置 Cloudflare Token、Worker URL 或任何代理 Secrets；`worker/` 仅保留为未来实验源码，默认工作流不会发布或调用它。
+不需要配置 Cloudflare Token、Worker URL 或任何代理 Secrets；前端使用已部署的 v0.1 图片 Worker，`worker/` 源码仅保留为未来实验，默认工作流不会发布或调用它。
 
 ## 版本记录与研究历史
 
